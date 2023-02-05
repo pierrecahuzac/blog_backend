@@ -7,25 +7,9 @@ router.get("/", (req, res) => {
   res.sendFile(path.join(__dirname + "/index.html"));
 });
 router.get("/blog", postsController.getAllPosts);
-router.post("/user/add", userController.addUser);
+router.get("/blog/:id", postsController.getOneArticle);
+router.post("/user/create_user", userController.createUser);
 router.post("/user/login", userController.loginUser);
+router.delete("/user/:userId/deleteAccount", userController.deleteAccount);
 
 module.exports = router;
-
-/* base("user").select({
-  filterByFormula: `email = "${email}"`,
-}),
-  (err, records) => {
-    if (err) {
-      console.log(err);
-    }
-    if (records) {
-      console.log("ici");
-      return res
-        .status(500)
-        .json({
-          erreur: "email existant, veuillez-vous connecter avec votre compte",
-        })
-        .end();
-    }
-  }; */

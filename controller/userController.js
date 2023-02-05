@@ -9,57 +9,62 @@ const base = new Airtable({
 }).base(AIRTABLE_BASE_ID);
 
 const userController = {
-  loginUser: async (req, res) => {
-    try {
-      const { email, password } = req.body;
+  deleteAccount: async (req, res) => {
+    const { userId } = req.params;
 
-      // errors
-      await base("user")
-        .select({
-          filterByFormula: `email = "${email}"`,
-        })
-        .eachPage((err, record) => {
-          if (err) {
-            /*   console.log(err); */
-            return res.status(500).json({ erreur: `il y'a une erreur ici` });
-          }
-          if (!record) {
-            return res.status(500).json({ erreur: "utilsateur introuvable" });
-          }
-          if (record) {
-            console.log(record.password);
-            console.log("user find");
-            /*  console.log(record); */
-            bcrypt.compare((password, record.password), (err, result) => {
-              if (err) {
-                return console.log(`il y'a une erreur`);
-              }
-              if (!result) {
-                console.log("utilisateur inconnu");
-                return;
-              }
-              if (result) {
-                console.log("utilisateur trouvé");
-                return res.status(200).json({
-                  user: {
-                    email: record.email,
-                    display_name: record.display_name,
-                  },
-                });
-              }
-            });
-            return res.status(500).json({
-              erreur:
-                "email existant, veuillez-vous connecter avec votre compte",
-            });
-          }
+    try {
+      base("user").destroy([userId], (err, deletedRecords) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        console.log("Deleted", deletedRecords.length, "records");
+        res.status(200).json({
+          message: "Utilisateur effacé",
         });
+      });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        message: "Une erreur c'est produite, compte toujours actif",
+      });
+    }
+  },
+  loginUser: async (req, res) => {
+    const { email, password } = req.body;
+    try {
+      base("user")
+        .select({ filterByFormula: `email="${email}"` })
+        .eachPage(
+          function page(records, fetchNextPage) {
+            // This function (`page`) will get called for each page of records.
+
+            records.forEach((record) => {
+              console.log("Retrieved", record.get("email"));
+              res.status(200).json({
+                record,
+                logged: true,
+              });
+            });
+
+            // To fetch the next page of records, call `fetchNextPage`.
+            // If there are more records, `page` will get called again.
+            // If there are no more records, `done` will get called.
+            fetchNextPage();
+          },
+          function done(err) {
+            if (err) {
+              console.error(err);
+              return;
+            }
+          }
+        );
     } catch (err) {
       console.log(err);
     }
   },
 
-  addUser: async (req, res) => {
+  createUser: async (req, res) => {
     // bcrypt config
     const saltRounds = 10;
     const salt = await bcrypt.genSaltSync(saltRounds);
@@ -69,11 +74,12 @@ const userController = {
       console.log(req.body);
 
       base("user").select({
-        filterByFormula: `email = "${email}"`,
+        filterByFormula: `email="${email}"`,
       }),
         (err, records) => {
           if (err) {
             console.log(err);
+            return;
           }
           if (records) {
             console.log("ici");
@@ -90,11 +96,11 @@ const userController = {
         password !== password_validation
       ) {
         return res.status(500).json({
-          erreur: "pas de mots de passe / mots de passe sont différents",
+          erreur: "Pas de mots de passe / mots de passe sont différents",
         });
       }
       if (!email) {
-        return res.status(400).json({ erreur: "pas d'email" });
+        return res.status(400).json({ erreur: "Pas d'email" });
       }
       base("user").create(
         [
@@ -112,10 +118,14 @@ const userController = {
             return err;
           }
           records.forEach((record) => {
-            console.log(record);
             console.log({
               id: record.id,
               email: record.fields.email,
+            });
+            res.status(200).json({
+              email: record.fields.email,
+              id: record.id,
+              message: "Utilisateur créé avec succés",
             });
           });
         }

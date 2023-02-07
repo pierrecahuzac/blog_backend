@@ -22,7 +22,7 @@ const postsController = {
   },
   getAllPosts: async (req, res) => {
     try {
-      await axios.get(
+      const posts = await axios.get(
         `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Article`,
         {
           headers: {
@@ -30,11 +30,9 @@ const postsController = {
           },
         }
       );
-      const articles = await res.data;
-
-      console.log(articles);
-
-      return articles;
+      console.log(posts);
+      res.json(posts);
+      return;
     } catch (err) {
       console.log(err);
     }

@@ -1,5 +1,6 @@
 const Airtable = require("../config/api");
 const axios = require("axios");
+const { response } = require("express");
 const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = process.env;
 const base = new Airtable({
   apiKey: AIRTABLE_API_KEY,
@@ -30,28 +31,13 @@ const postsController = {
           },
         }
       );
-      console.log(posts);
-      res.json(posts);
-      return;
+      const response = await posts.data.records;
+      console.log(response);
+      return res.status(200).json(response).end();
     } catch (err) {
       console.log(err);
     }
-    /*  const articles = await axios
-      .get(
-        `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Article`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-          },
-        }
-      )
-      .then((res) => {
-        console.log(articles);
-        return res.status(200).json(articles);
-      })
-      .catch((err) => {
-        console.log(err);
-      }); */
   },
 };
+
 module.exports = postsController;

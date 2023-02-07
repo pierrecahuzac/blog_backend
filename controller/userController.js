@@ -45,6 +45,7 @@ const userController = {
 
             records.forEach((record) => {
               console.log("Retrieved", record.get("email"));
+              console.log(res);
               res.status(200).json({
                 record,
                 logged: true,

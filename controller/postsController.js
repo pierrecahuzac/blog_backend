@@ -21,8 +21,24 @@ const postsController = {
     }
   },
   getAllPosts: async (req, res) => {
-    /* try { */
-    const articles = await axios
+    try {
+      const articles = await axios.get(
+        `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Article`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+          },
+        }
+      );
+      const data = await res.data;
+
+      console.log(data);
+
+      return data;
+    } catch (err) {
+      console.log(err);
+    }
+    /*  const articles = await axios
       .get(
         `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Article`,
         {
@@ -37,7 +53,7 @@ const postsController = {
       })
       .catch((err) => {
         console.log(err);
-      });
+      }); */
   },
 };
 module.exports = postsController;

@@ -1,6 +1,6 @@
 const Airtable = require("../config/api");
 const axios = require("axios");
-const fetch = require("node-fetch");
+
 const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = process.env;
 
 const base = new Airtable({

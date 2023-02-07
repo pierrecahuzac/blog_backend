@@ -1,5 +1,5 @@
 const Airtable = require("../config/api");
-
+const axios = require("axios");
 const fetch = require("node-fetch");
 const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = process.env;
 
@@ -24,7 +24,7 @@ const postsController = {
   },
   getAllPosts: async (req, res) => {
     try {
-      const articles = await fetch(
+      const articles = await axios.get(
         `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Article`,
         {
           headers: {

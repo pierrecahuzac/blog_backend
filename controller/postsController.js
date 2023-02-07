@@ -21,23 +21,23 @@ const postsController = {
     }
   },
   getAllPosts: async (req, res) => {
-    try {
-      const articles = await axios.get(
+    /* try { */
+    const articles = await axios
+      .get(
         `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Article`,
         {
           headers: {
             Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
           },
         }
-      );
-      console.log(await articles.json());
-      const response = await articles.json();
-      console.log(response);
-      console.log("ici");
-      res.status(200).json(response).end();
-    } catch (err) {
-      console.log(err);
-    }
+      )
+      .then((res) => {
+        console.log(articles);
+        return res.status(200).json(articles);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   },
 };
 

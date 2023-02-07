@@ -3,8 +3,24 @@ const app = express();
 const cors = require("cors");
 const router = require("./router");
 const dotenv = require("dotenv");
+
+if (process.env.NODE_ENV !== "production") {
+  var corsOptions = {
+    origin: process.env.CLIENT_URL,
+    optionsSuccessStatus: 200,
+    // some legacy browsers (IE11, various SmartTVs) choke on 204
+  };
+  console.log(process.env.CLIENT_URL);
+} else {
+  var corsOptions = {
+    origin: process.env.FRONT_PROD_URL,
+    optionsSuccessStatus: 200,
+    // some legacy browsers (IE11, various SmartTVs) choke on 204
+  };
+}
+
 dotenv.config();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

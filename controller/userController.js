@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const emailValidator = require("email-validator");
 
 const Airtable = require("../config/api");
 require("dotenv").config();
@@ -33,6 +34,9 @@ const userController = {
   loginUser: async (req, res) => {
     const { email, password } = req.body;
     try {
+      if (!emailValidator.validate(email)) {
+        return res.status(500).json({ message: "l'email n'est pas un email" });
+      }
       base("user")
         .select({ filterByFormula: `email="${email}"` })
         .eachPage(

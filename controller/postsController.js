@@ -30,6 +30,7 @@ const postsController = {
           },
         }
       );
+      console.log(await articles.json());
       const response = await articles.json();
       console.log(response);
       console.log("ici");

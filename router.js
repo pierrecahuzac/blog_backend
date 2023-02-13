@@ -8,8 +8,10 @@ router.get("/", (req, res) => {
 });
 router.get("/blog", postsController.getAllPosts);
 router.get("/blog/:id", postsController.getOneArticle);
+router.get("/blog/user/:displayName", postsController.getAllPostsFromUser);
 router.post("/user/create_user", userController.createUser);
 router.post("/user/login", userController.loginUser);
 router.delete("/user/:userId/deleteAccount", userController.deleteAccount);
-
+router.post("/user/createNewPost", postsController.createNewPost);
+router.delete("/user/:articleId", postsController.deleteOneUserPost);
 module.exports = router;

@@ -1,20 +1,14 @@
 const bcrypt = require("bcrypt");
 const emailValidator = require("email-validator");
-
-const Airtable = require("../config/api");
+const db = require("../config/db");
 require("dotenv").config();
-const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = process.env;
-
-const base = new Airtable({
-  apiKey: AIRTABLE_API_KEY,
-}).base(AIRTABLE_BASE_ID);
 
 const userController = {
   deleteAccount: async (req, res) => {
     const { userId } = req.params;
 
     try {
-      base("user").destroy([userId], (err, deletedRecords) => {
+      db("user").destroy([userId], (err, deletedRecords) => {
         if (err) {
           console.error(err);
           return;
@@ -31,13 +25,14 @@ const userController = {
       });
     }
   },
+
   loginUser: async (req, res) => {
     const { email, password } = req.body;
     try {
       if (!emailValidator.validate(email)) {
         return res.status(500).json({ message: "l'email n'est pas un email" });
       }
-      base("user")
+      db("user")
         .select({ filterByFormula: `email="${email}"` })
         .eachPage(
           function page(records, fetchNextPage) {
@@ -78,7 +73,7 @@ const userController = {
       const { email, display_name, password, password_validation } = req.body;
       console.log(req.body);
 
-      base("user").select({
+      db("user").select({
         filterByFormula: `email="${email}"`,
       }),
         (err, records) => {
@@ -94,7 +89,11 @@ const userController = {
             });
           }
         };
-
+      if (!emailValidator.validate(email)) {
+        return res.status(500).json({
+          erreur: "entrez une adresse email valide",
+        });
+      }
       if (
         !password ||
         !password_validation ||
@@ -107,7 +106,7 @@ const userController = {
       if (!email) {
         return res.status(400).json({ erreur: "Pas d'email" });
       }
-      base("user").create(
+      db("user").create(
         [
           {
             fields: {

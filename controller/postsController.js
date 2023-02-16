@@ -3,18 +3,18 @@ const axios = require("axios");
 
 const postsController = {
   createNewPost: async (req, res) => {
-    const { createNewPost, userExist } = req.body;
+    const { newPostTitle, newPostContent, newPostURL, userExist } = req.body;
     try {
       db("article").create(
         [
           {
             fields: {
-              title: createNewPost.title,
-              content: createNewPost.content,
-              picture: [{ url: createNewPost.picture }],
+              title: newPostTitle,
+              content: newPostContent,
+              picture: [{ url: newPostURL }],
               /*     createdBy: createNewPost.createdBy, */
-              user: userExist.display_name,
-              date: createNewPost.Date,
+              /*      user: userExist.display_name,
+              date: createNewPost.Date, */
             },
           },
         ],

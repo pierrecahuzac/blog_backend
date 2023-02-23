@@ -3,9 +3,60 @@ const axios = require("axios");
 
 const postsController = {
   createNewPost: async (req, res) => {
-    const { newPostTitle, newPostContent, newPostURL, userExist } = req.body;
-    try {
-      db("article").create(
+    const {
+      newPostTitle,
+      newPostContent,
+      newPostURL,
+      email,
+      display_name,
+      createdBy,
+      user,
+      userID,
+    } = req.body;
+
+    const data = {
+      fields: {
+        title: newPostTitle,
+        content: newPostContent,
+        picture: [
+          {
+            url: newPostURL,
+          },
+        ],
+        Date: Date.now(),
+        user: user,
+        createdBy: [{ userID: userID }],
+        display_name: display_name,
+        email: email,
+      },
+    };
+    await axios
+      .post(
+        `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Article`,
+        {
+          title: newPostTitle,
+          content: newPostContent,
+          picture: [
+            {
+              url: newPostURL,
+            },
+          ],
+          Date: Date.now(),
+          user: user,
+          createdBy: email,
+          display_name: display_name,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((res) => {
+        console.log(res);
+      })
+      /* db("article").create(
         [
           {
             fields: {
@@ -13,8 +64,8 @@ const postsController = {
               content: newPostContent,
               picture: [{ url: newPostURL }],
               /*     createdBy: createNewPost.createdBy, */
-              /*      user: userExist.display_name,
-              date: createNewPost.Date, */
+      /*      user: userExist.display_name,
+              date: createNewPost.Date, 
             },
           },
         ],
@@ -30,10 +81,10 @@ const postsController = {
             });
           });
         }
-      );
-    } catch (err) {
-      console.log(err);
-    }
+      ); */
+      .catch((err) => {
+        console.log(err);
+      });
   },
 
   getAllPostsFromUser: async (req, res) => {

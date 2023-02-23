@@ -10,7 +10,6 @@ if (process.env.NODE_ENV !== "production") {
     optionsSuccessStatus: 200,
     // some legacy browsers (IE11, various SmartTVs) choke on 204
   };
-  console.log(process.env.CLIENT_URL);
 } else {
   var corsOptions = {
     origin: process.env.FRONT_PROD_URL,

@@ -1,165 +1,124 @@
 const db = require("../config/db");
 const axios = require("axios");
+const { PrismaClient } = require("@prisma/client");
+const { IntFilter } = require("@prisma/client");
+const prisma = new PrismaClient();
 
 const postsController = {
-  createNewPost: async (req, res) => {
-    const {
-      newPostTitle,
-      newPostContent,
-      newPostURL,
-      email,
-      display_name,
-      createdBy,
-      user,
-      userID,
-    } = req.body;
+  getAllPosts: async (req, res) => {
+    try {
+      const posts = await prisma.post.findMany();
+      if (!posts) {
+        res.status(400).json({ error: `pas d'articles tourvés` });
+        return;
+      }
+      console.log(posts);
+      res.status(200).json({ posts });
+    } catch (err) {
+      console.log(err);
+    }
+  },
 
-    const data = {
-      fields: {
-        title: newPostTitle,
-        content: newPostContent,
-        picture: [
-          {
-            url: newPostURL,
-          },
-        ],
-        Date: Date.now(),
-        user: user,
-        createdBy: [{ userID: userID }],
-        display_name: display_name,
-        email: email,
-      },
-    };
-    await axios
-      .post(
-        `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Article`,
-        {
+  createNewPost: async (req, res) => {
+    try {
+      const {
+        newPostTitle,
+        newPostContent,
+        newPostURL,
+        createdBy,
+        userId,
+        email,
+        username,
+      } = req.body;
+      const result = await prisma.post.create({
+        data: {
           title: newPostTitle,
           content: newPostContent,
-          picture: [
-            {
-              url: newPostURL,
+          picture: newPostURL,
+          authorId: userId,
+          author: {
+            connect: {
+              id: userId,
+              email,
             },
-          ],
-          Date: Date.now(),
-          user: user,
-          createdBy: email,
-          display_name: display_name,
+          },
         },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .then((res) => {
-        console.log(res);
-      })
-      /* db("article").create(
-        [
-          {
-            fields: {
-              title: newPostTitle,
-              content: newPostContent,
-              picture: [{ url: newPostURL }],
-              /*     createdBy: createNewPost.createdBy, */
-      /*      user: userExist.display_name,
-              date: createNewPost.Date, 
-            },
-          },
-        ],
-        (err, records) => {
-          if (err) {
-            console.error(err);
-            return;
-          }
-          records.forEach((record) => {
-            console.log(record);
-            res.status(200).json({
-              record,
-            });
-          });
-        }
-      ); */
-      .catch((err) => {
-        console.log(err);
       });
+      res.json(result);
+    } catch (err) {
+      console.log(err);
+    }
   },
 
   getAllPostsFromUser: async (req, res) => {
-    const { displayName } = req.params;
+    const { userId } = req.params;
+    const userIdToInt = parseInt(userId, 10);
+    console.log(userIdToInt);
+    /*  const userIdToInt = int(req.params.id);
+     */
     try {
-      db("article")
-        .select({
-          filterByFormula: `{user} = '${displayName}'`,
-        })
-        .eachPage(
-          (records, fetchNextPage) => {
-            const recordsData = [];
-
-            records.forEach((record) => {
-              recordsData.push(record);
-            });
-
-            res.json({
-              result: recordsData,
-            });
-
-            fetchNextPage();
+      const postsUser = await prisma.post.findMany({
+        where: {
+          authorId: {
+            equals: userIdToInt,
           },
-          (err) => {
-            if (err) {
-              console.error(err);
-              res.status(500).json({ error: err });
-            }
-          }
-        );
+        },
+      });
+      if (!postsUser) {
+        console.log("uci", "Pas de posts trouvés pour cet user " + userId);
+        return;
+      }
+      res.status(200).json({ postsUser });
+      /*  const postArray = [];
+      postArray.push(postsUser);
+      res.status(200).json({ postArray }); */
+      return;
     } catch (err) {
-      console.error(err, "ici");
+      console.error(err);
     }
   },
+
   deleteOneUserPost: async (req, res) => {
+    const articleId = req.params.id;
+    console.log(articleId);
     try {
-      const articleId = req.params.id;
-      await db("article").destroy(articleId, (err, result) => {
-        if (err) {
-          return res.status(400).json({ error: err });
-        }
-        return res.status(200).json({ article: result });
+      const deletePost = await prisma.post.delete({
+        where: {
+          id: parseInt(articleId, 10),
+        },
       });
+      if (err) {
+        console.log(err);
+        res.status(500).json({ error: err });
+        return;
+      }
+      res.status(200).json({
+        success: "Le post a été supprimé",
+      });
+      return;
     } catch (err) {
       return res.status(400).json({ error: err });
     }
   },
+
   getOneArticle: async (req, res) => {
     try {
       const articleId = req.params.id;
-      await db("article").find(articleId, (err, result) => {
-        if (err) {
-          return res.status(400).json({ error: err });
-        }
-        return res.status(200).json({ article: result });
+
+      const post = await prisma.post.findUnique({
+        where: {
+          id: parseInt(articleId, 10),
+        },
       });
+      if (!post) {
+        res.status(404).json({ error: "Article non trouvé" });
+        return;
+      }
+      console.log(post);
+      res.status(200).json({ post, success: "Article trouvé" });
+      return;
     } catch (err) {
       return res.status(400).json({ error: err });
-    }
-  },
-
-  getAllPosts: async (req, res) => {
-    try {
-      const posts = await axios.get(
-        `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Article`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-          },
-        }
-      );
-      const response = await posts.data.records;
-      return res.status(200).json(response).end();
-    } catch (err) {
-      console.log(err);
     }
   },
 };

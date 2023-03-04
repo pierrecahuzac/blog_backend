@@ -3,15 +3,17 @@ const router = require("express").Router();
 const userController = require("./controller/userController");
 const postsController = require("./controller/postsController");
 
-router.get("/", (req, res) => {
+/* router.get("/", (req, res) => {
   res.sendFile(path.join(__dirname + "/index.html"));
-});
-router.get("/blog", postsController.getAllPosts);
-router.get("/blog/:id", postsController.getOneArticle);
-router.get("/blog/user/:displayName", postsController.getAllPostsFromUser);
-router.post("/user/create_user", userController.createUser);
-router.post("/user/login", userController.loginUser);
+}); */
+router.get("/api/blog", postsController.getAllPosts);
+router.post("/api/user/create_user", userController.createUser);
+router.post("/api/user/login", userController.loginUser);
+router.get("/api/blog/user/:userId", postsController.getAllPostsFromUser);
+router.post("/api/user/createNewPost", postsController.createNewPost);
+router.delete("/api/user/:articleId", postsController.deleteOneUserPost);
+router.get("/api/blog/:id", postsController.getOneArticle);
+
 router.delete("/user/:userId/deleteAccount", userController.deleteAccount);
-router.post("/user/createNewPost", postsController.createNewPost);
-router.delete("/user/:articleId", postsController.deleteOneUserPost);
+
 module.exports = router;

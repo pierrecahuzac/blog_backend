@@ -1,76 +1,17 @@
 const bcrypt = require("bcrypt");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
 const emailValidator = require("email-validator");
 const passwordValidator = require("password-validator");
 const db = require("../config/db");
 require("dotenv").config();
 
 const userController = {
-  deleteAccount: async (req, res) => {
-    const { userId } = req.params;
-
-    try {
-      db("user").destroy([userId], (err, deletedRecords) => {
-        if (err) {
-          console.error(err);
-          return;
-        }
-        console.log("Deleted", deletedRecords.length, "records");
-        res.status(200).json({
-          message: "Utilisateur effacé",
-        });
-      });
-    } catch (err) {
-      console.log(err);
-      return res.status(500).json({
-        message: "Une erreur c'est produite, compte toujours actif",
-      });
-    }
-  },
-
-  loginUser: async (req, res) => {
-    const { email, password } = req.body;
-    try {
-      if (!emailValidator.validate(email)) {
-        return res.status(500).json({ message: "L'email n'est pas un email" });
-      }
-      db("user")
-        .select({ filterByFormula: `email="${email}"` })
-        .eachPage(
-          function page(records, fetchNextPage) {
-            // This function (`page`) will get called for each page of records.
-
-            records.forEach((record) => {
-              console.log("Retrieved", record.get("email"));
-              console.log(res);
-              res.status(200).json({
-                record,
-                logged: true,
-              });
-            });
-
-            // To fetch the next page of records, call `fetchNextPage`.
-            // If there are more records, `page` will get called again.
-            // If there are no more records, `done` will get called.
-            fetchNextPage();
-          },
-          function done(err) {
-            if (err) {
-              console.error(err);
-              return;
-            }
-          }
-        );
-    } catch (err) {
-      console.log(err);
-    }
-  },
-
   createUser: async (req, res) => {
-    // bcrypt config
-    const saltRounds = 10;
-    const salt = await bcrypt.genSaltSync(saltRounds);
+    console.log("ici");
     try {
-      const { email, display_name, password, password_validation } = req.body;
+      const { email, username, password, password_validation } = req.body;
       console.log(req.body);
       var schema = new passwordValidator();
       schema
@@ -90,76 +31,117 @@ const userController = {
         .is()
         .not()
         .oneOf(["Passw0rd", "Password123"]);
+      const arrayErrors = [];
 
-      db("user").select({
-        filterByFormula: `email="${email}"`,
-      }),
-        (err, records) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          if (records) {
-            console.log("ici");
-            return res.status(500).json({
-              erreur:
-                "Email existant, veuillez-vous connecter avec votre compte",
-            });
-          }
-        };
+      const userExist = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (userExist) {
+        arrayErrors.push("error");
+        console.log(userExist);
+        res.status(502).json({ error: "Email found, please login" });
+        return;
+      }
+
       if (!schema.validate(password)) {
-        return res.status(400).json({
+        arrayErrors.push("error");
+        res.status(400).json({
           erreur:
             "Le mot de passes ne correspont pas aux standards de sécurité, merci de le modifier",
         });
+        return;
       }
       if (!emailValidator.validate(email)) {
-        return res.status(500).json({
+        arrayErrors.push("error");
+        res.status(500).json({
           erreur: "Entrez une adresse email valide",
         });
+        return;
       }
       if (
         !password ||
         !password_validation ||
         password !== password_validation
       ) {
-        return res.status(500).json({
-          erreur: "Pas de mots de passe ou les mots de passe sont différents",
+        arrayErrors.push("error");
+        res.status(500).json({
+          erreur:
+            "Pas de mots de passe ou le mots de passe et la validation sont différents",
         });
+        return;
       }
       if (!email) {
-        return res.status(400).json({ erreur: "Pas d'email" });
+        arrayErrors.push("error");
+        res.status(400).json({ erreur: "Pas d'email" });
+        return;
       }
-      db("user").create(
-        [
-          {
-            fields: {
-              email,
-              password: await bcrypt.hashSync(password, salt),
-              display_name,
-            },
-          },
-        ],
-        function (err, records) {
-          if (err) {
-            console.log(err);
-            return err;
-          }
-          records.forEach((record) => {
-            console.log({
-              id: record.id,
-              email: record.fields.email,
-            });
-            res.status(200).json({
-              email: record.fields.email,
-              id: record.id,
-              message: "Utilisateur créé avec succés",
-            });
-          });
-        }
-      );
+
+      if (arrayErrors.length) {
+        res.status(500).json({ arrayErrors });
+        return;
+      }
+      const saltRounds = 10;
+      const salt = bcrypt.genSaltSync(saltRounds);
+      const user = await prisma.user.create({
+        data: {
+          email,
+          username: username,
+          password: bcrypt.hashSync(password, salt),
+        },
+      });
+      res.status(200).json({ user, success: "User created with success" });
+      console.log(user);
     } catch (err) {
       console.log(err);
+    }
+  },
+  loginUser: async (req, res) => {
+    const { email, password } = req.body;
+    try {
+      if (!emailValidator.validate(email)) {
+        return res.status(500).json({ message: "L'email n'est pas un email" });
+      }
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+      if (!user) {
+        console.log("user not found");
+        return;
+      }
+      console.log(user);
+      const passwordChecked = bcrypt.compareSync(password, user.password);
+      console.log(passwordChecked);
+      if (!passwordChecked) {
+        res.status(402).json({ error: `Mauvais mot de passe` });
+        return;
+      }
+
+      res.status(200).json({ user, success: "user find, user connected" });
+      return;
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  deleteAccount: async (req, res) => {
+    const { userId } = req.params;
+    try {
+      await prisma.user.delete({
+        where: {
+          id: userId,
+        },
+      });
+      if (err) {
+        console.log(err);
+      }
+      res.status(200).json({ success: "User account deleted" });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        message: "Une erreur c'est produite, compte toujours actif",
+      });
     }
   },
 };

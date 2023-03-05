@@ -14,6 +14,6 @@ router.post("/api/user/createNewPost", postsController.createNewPost);
 router.delete("/api/user/:articleId", postsController.deleteOneUserPost);
 router.get("/api/blog/:id", postsController.getOneArticle);
 
-router.delete("/user/:userId/deleteAccount", userController.deleteAccount);
+router.delete("/api/user/:userId/deleteAccount", userController.deleteAccount);
 
 module.exports = router;

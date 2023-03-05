@@ -49,7 +49,7 @@ const postsController = {
   },
 
   getAllPostsFromUser: async (req, res) => {
-    const { username } = req.params;
+    const { id } = req.params;
 
     /*  const userIdToInt = int(req.params.id);
      */
@@ -57,7 +57,7 @@ const postsController = {
       const postsUser = await prisma.post.findMany({
         where: {
           authorId: {
-            equals: username,
+            equals: id,
           },
         },
       });

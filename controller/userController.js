@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { IntFilter } = require("@prisma/client");
 const bcrypt = require("bcrypt");
 const emailValidator = require("email-validator");
 const passwordValidator = require("password-validator");
@@ -39,7 +40,10 @@ const userController = {
       if (userExist) {
         arrayErrors.push("error");
         console.log(userExist);
-        res.status(502).json({ error: "Email found, please login" });
+        res.status(502).json({
+          error:
+            "Utilisateur existant, merci de vous connecter avec votre email / mot de passe",
+        });
         return;
       }
 
@@ -89,7 +93,9 @@ const userController = {
           password: bcrypt.hashSync(password, salt),
         },
       });
-      res.status(200).json({ user, success: "User created with success" });
+      res
+        .status(200)
+        .json({ user, success: "Le compte a été crée avec succès" });
       console.log(user);
     } catch (err) {
       console.log(err);
@@ -107,6 +113,10 @@ const userController = {
         },
       });
       if (!user) {
+        user;
+        res
+          .status(400)
+          .json({ error: "Utilisateur introuvable, avez-vous un compte ?" });
         console.log("user not found");
         return;
       }
@@ -118,7 +128,7 @@ const userController = {
         return;
       }
 
-      res.status(200).json({ user, success: "user find, user connected" });
+      res.status(200).json({ user, success: "Utilisateur trouvé et connecté" });
       return;
     } catch (err) {
       console.log(err);
@@ -126,16 +136,31 @@ const userController = {
   },
   deleteAccount: async (req, res) => {
     const { userId } = req.params;
+    const userIdToInt = parseInt(userId);
+    console.log(userIdToInt);
+
+    console.log(userId);
     try {
-      await prisma.user.delete({
+      const deletePosts = prisma.post.deleteMany({
         where: {
-          id: userId,
+          authorId: userIdToInt,
         },
       });
-      if (err) {
-        console.log(err);
+
+      const deleteUser = prisma.user.delete({
+        where: {
+          id: userIdToInt,
+        },
+      });
+
+      await prisma.$transaction([deletePosts, deleteUser]);
+
+      if (!res) {
+        res.status(400).json({ error: "Utilisateur introuvable" });
+        return;
       }
-      res.status(200).json({ success: "User account deleted" });
+      res.status(202).json({ success: "Le compte utilisateur a été effacé" });
+      return;
     } catch (err) {
       console.log(err);
       return res.status(500).json({

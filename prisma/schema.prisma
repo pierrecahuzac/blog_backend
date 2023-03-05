@@ -17,9 +17,9 @@ model Post {
   title     String   @db.VarChar(255)
   content   String?
   published Boolean?  @default(false)
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
   picture String?
+  author    User     @relation(fields: [authorId],references: [id])
+  authorId  Int   
 }
 
 model User {
@@ -27,9 +27,7 @@ model User {
   email   String   @unique 
   username String @unique
   password String @db.VarChar(255)
-  posts   Post[]
-  
-  
+  posts   Post[]  
 }
 
 

@@ -1,5 +1,3 @@
-const db = require("../config/db");
-const axios = require("axios");
 const { PrismaClient } = require("@prisma/client");
 const { IntFilter } = require("@prisma/client");
 const prisma = new PrismaClient();
@@ -51,27 +49,23 @@ const postsController = {
   },
 
   getAllPostsFromUser: async (req, res) => {
-    const { userId } = req.params;
-    const userIdToInt = parseInt(userId, 10);
-    console.log(userIdToInt);
+    const { username } = req.params;
+
     /*  const userIdToInt = int(req.params.id);
      */
     try {
       const postsUser = await prisma.post.findMany({
         where: {
           authorId: {
-            equals: userIdToInt,
+            equals: username,
           },
         },
       });
       if (!postsUser) {
-        console.log("uci", "Pas de posts trouvés pour cet user " + userId);
+        console.log("Pas de posts trouvés pour cet user " + userId);
         return;
       }
       res.status(200).json({ postsUser });
-      /*  const postArray = [];
-      postArray.push(postsUser);
-      res.status(200).json({ postArray }); */
       return;
     } catch (err) {
       console.error(err);

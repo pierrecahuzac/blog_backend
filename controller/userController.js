@@ -1,10 +1,9 @@
-const bcrypt = require("bcrypt");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-
+const bcrypt = require("bcrypt");
 const emailValidator = require("email-validator");
 const passwordValidator = require("password-validator");
-const db = require("../config/db");
+
 require("dotenv").config();
 
 const userController = {

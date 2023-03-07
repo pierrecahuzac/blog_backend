@@ -5,8 +5,8 @@ const app = express();
 const cors = require("cors");
 
 const whiteListOrigin = [
-  process.env.CLIENT_URL,
-  process.env.FRONT_PROD_URL,
+  /*   process.env.CLIENT_URL,
+  process.env.FRONT_PROD_URL, */
   "*",
 ];
 
@@ -23,7 +23,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
+/* app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", whiteListOrigin);
   res.header("Access-Control-Allow-Credentials", true);
   res.header(
@@ -32,7 +32,7 @@ app.use((req, res, next) => {
   );
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
   next();
-});
+}); */
 
 app.use(router);
 app.listen(process.env.PORT, () => {

@@ -4,7 +4,7 @@ const { IntFilter } = require("@prisma/client");
 const bcrypt = require("bcrypt");
 const emailValidator = require("email-validator");
 const passwordValidator = require("password-validator");
-
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const userController = {
@@ -12,7 +12,6 @@ const userController = {
     console.log("ici");
     try {
       const { email, username, password, password_validation } = req.body;
-      console.log(req.body);
       var schema = new passwordValidator();
       schema
         .is()
@@ -32,14 +31,12 @@ const userController = {
         .not()
         .oneOf(["Passw0rd", "Password123"]);
       const arrayErrors = [];
-
       const userExist = await prisma.user.findUnique({
         where: { email },
       });
 
       if (userExist) {
         arrayErrors.push("error");
-        console.log(userExist);
         res.status(502).json({
           error:
             "Utilisateur existant, merci de vous connecter avec votre email / mot de passe",
@@ -94,18 +91,19 @@ const userController = {
         },
       });
       res
-        .status(200)
-        .json({ user, success: "Le compte a été crée avec succès" });
+        .status(201)
+        .json({ user, sucess: "Le compte a été crée avec succès" });
       console.log(user);
     } catch (err) {
       console.log(err);
     }
   },
+
   loginUser: async (req, res) => {
     const { email, password } = req.body;
     try {
       if (!emailValidator.validate(email)) {
-        return res.status(500).json({ message: "L'email n'est pas un email" });
+        return res.status(401).json({ message: "L'email n'est pas un email" });
       }
       const user = await prisma.user.findUnique({
         where: {
@@ -113,23 +111,22 @@ const userController = {
         },
       });
       if (!user) {
-        user;
         res
-          .status(400)
+          .status(404)
           .json({ error: "Utilisateur introuvable, avez-vous un compte ?" });
         console.log("user not found");
         return;
       }
-      console.log(user);
       const passwordChecked = bcrypt.compareSync(password, user.password);
-      console.log(passwordChecked);
       if (!passwordChecked) {
-        res.status(402).json({ error: `Mauvais mot de passe` });
+        res.status(401).json({ error: `Mauvais mot de passe` });
         return;
       }
-
-      res.status(200).json({ user, success: "Utilisateur trouvé et connecté" });
-      return;
+      /* const token = jwt.sign({ userId: user.id }, JWT_SIGN_SECRET);
+      res.cookie("token", token, { httpOnly: true }); */
+      res
+        .status(200)
+        .json({ user, sucess: "Utilisateur connecté avec succès" });
     } catch (err) {
       console.log(err);
     }
@@ -159,7 +156,7 @@ const userController = {
         res.status(400).json({ error: "Utilisateur introuvable" });
         return;
       }
-      res.status(202).json({ success: "Le compte utilisateur a été effacé" });
+      res.status(202).json({ sucess: "Le compte utilisateur a été effacé" });
       return;
     } catch (err) {
       console.log(err);

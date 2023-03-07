@@ -4,19 +4,19 @@ const cors = require("cors");
 const router = require("./router");
 const dotenv = require("dotenv");
 
-if (process.env.NODE_ENV !== "production") {
-  var corsOptions = {
-    origin: process.env.CLIENT_URL,
-    optionsSuccessStatus: 200,
-    // some legacy browsers (IE11, various SmartTVs) choke on 204
-  };
-} else {
-  var corsOptions = {
-    origin: process.env.FRONT_PROD_URL,
-    optionsSuccessStatus: 200,
-    // some legacy browsers (IE11, various SmartTVs) choke on 204
-  };
-}
+const whiteListOrigin = [
+  process.env.CLIENT_URL,
+  process.env.FRONT_PROD_URL,
+  "*",
+];
+
+// cors management
+var corsOptions = {
+  origin: whiteListOrigin,
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+  preflightContinue: false,
+  credentials: true,
+};
 
 dotenv.config();
 app.use(cors(corsOptions));

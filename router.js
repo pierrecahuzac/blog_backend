@@ -6,7 +6,7 @@ const postsController = require("./controller/postsController");
 router.get("/", (req, res) => {
   res.sendFile(path.join(__dirname + "/index.html"));
 });
-router.get("/api/blog", postsController.getAllPosts);
+router.get("api/blog", postsController.getAllPosts);
 router.post("/api/user/create_user", userController.createUser);
 router.post("/api/user/login", userController.loginUser);
 router.get("/api/blog/user/:userId", postsController.getAllPostsFromUser);

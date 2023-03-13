@@ -90,9 +90,11 @@ const userController = {
           password: bcrypt.hashSync(password, salt),
         },
       });
-      res
-        .status(201)
-        .json({ user, sucess: "Le compte a été crée avec succès" });
+      res.status(201).json({
+        user,
+        logged: true,
+        sucess: "Le compte a été crée avec succès",
+      });
       console.log(user);
     } catch (err) {
       console.log(err);
@@ -122,8 +124,7 @@ const userController = {
         res.status(401).json({ error: `Mauvais mot de passe` });
         return;
       }
-      /* const token = jwt.sign({ userId: user.id }, JWT_SIGN_SECRET);
-      res.cookie("token", token, { httpOnly: true }); */
+
       res
         .status(200)
         .json({ user, sucess: "Utilisateur connecté avec succès" });

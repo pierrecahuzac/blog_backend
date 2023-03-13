@@ -5,7 +5,23 @@ const prisma = new PrismaClient();
 const postsController = {
   getAllPosts: async (req, res) => {
     try {
-      const posts = await prisma.post.findMany();
+      const posts = await prisma.post.findMany({
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          title: true,
+          content: true,
+          published: true,
+          picture: true,
+          author: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
+        },
+      });
       if (!posts) {
         res.status(400).json({ error: `pas d'articles tourvés` });
         return;
@@ -102,6 +118,21 @@ const postsController = {
       const post = await prisma.post.findUnique({
         where: {
           id: parseInt(articleId, 10),
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          title: true,
+          content: true,
+          published: true,
+          picture: true,
+          author: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
         },
       });
       if (!post) {

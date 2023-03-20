@@ -65,23 +65,30 @@ const postsController = {
   },
 
   getAllPostsFromUser: async (req, res) => {
-    const { id } = req.params;
-    console.log(req.params.id);
-    const userIdToInt = parseInt(id);
-    console.log(userIdToInt);
+    const { username } = req.params;
+    console.log(username);
+    /*    const userIdToInt = parseInt(id);
+    console.log(userIdToInt); */
     try {
       const postsUser = await prisma.post.findMany({
         where: {
-          authorId: {
-            equals: userIdToInt,
-          },
+          authorId: 8,
+          /*   author: {
+            select: {
+              username: true,
+              email: true,
+            },
+          }, */
         },
       });
+      console.log(postsUser);
       if (!postsUser) {
         console.log("Pas de posts trouvés pour cet user " + userId);
         return;
       }
-      res.status(200).json({ postsUser });
+      console.log(postsUser);
+
+      res.status(201).json({ postsUser });
       return;
     } catch (err) {
       console.error(err);
@@ -89,20 +96,22 @@ const postsController = {
   },
 
   deleteOneUserPost: async (req, res) => {
-    const articleId = req.params.id;
-    console.log(articleId);
+    console.log("ici dans le abck");
+    const { articleId } = req.params;
+    console.log("articelId", articleId);
     try {
-      const deletePost = await prisma.post.delete({
+      const response = await prisma.post.delete({
         where: {
           id: parseInt(articleId, 10),
         },
       });
-      if (err) {
+      console.log(response);
+      /* if (err) {
         console.log(err);
         res.status(500).json({ error: err });
         return;
-      }
-      res.status(200).json({
+      } */
+      res.status(201).json({
         success: "Le post a été supprimé",
       });
       return;

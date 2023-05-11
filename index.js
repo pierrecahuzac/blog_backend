@@ -4,11 +4,11 @@ const router = require("./router");
 const app = express();
 const cors = require("cors");
 dotenv.config();
-const whiteListOrigin = [
+/* const whiteListOrigin = [
   process.env.CLIENT_URL,
   process.env.FRONT_PROD_URL,
   "*",
-];
+]; */
 
 // cors management
 /*  var corsOptions = {
@@ -32,9 +32,9 @@ const whiteListOrigin = [
     next();
 }); */
 app.use(
-  cors({
+  cors(/* {
     origin: [process.env.FRONT_PROD_URL, process.env.CLIENT_URL],
-  })
+  } */)
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

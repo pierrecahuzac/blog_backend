@@ -1,0 +1,51 @@
+login: async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      /*  const email = "cahuzac.p@gmail.com";
+      const password = "**Opethdu32**"; */
+      // Validation des données reçues
+      if (!email || !password) {
+        return res.status(400).json({ message: "Bad email or password" });
+      }
+      // récupérer l'utilisateur
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+      console.log(user);
+      if (!user) {
+        console.log("!user");
+        console.log("user not found");
+        return res.status(401).json({ error: "unknow user" });
+      }
+      // vérifier que le mot de passe entré correspond à celui de la BDD
+      const passwordChecked = bcrypt.compareSync(password, user.password);
+      console.log(passwordChecked);
+      // si mot de passe différent de celui de la bdd
+      if (!passwordChecked) {
+        return res
+          .status(500)
+          .json({ message: `Login process failed`, error: err });
+      }
+      // generation du token jwt
+      // jwt.sign({payload}, secret, durée);
+      const token = jwt.sign(
+        {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_DURING }
+      );
+
+      console.log(token);
+      /* return res.json({ access_token: token }); */
+    } catch (err) {
+      res.status(500).json({
+        message: "Database error",
+        error: err,
+      });
+    }
+  },

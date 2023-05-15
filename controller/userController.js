@@ -1,10 +1,10 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const { IntFilter } = require("@prisma/client");
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const emailValidator = require("email-validator");
 const passwordValidator = require("password-validator");
-const jwt = require("jsonwebtoken");
+
 require("dotenv").config();
 
 const userController = {
@@ -101,7 +101,78 @@ const userController = {
     }
   },
 
-  loginUser: async (req, res) => {
+  login: async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      // Validation des données reçues
+      if (!email || !password) {
+        return res.status(401).json({ message: "Bad email or password" });
+      }
+
+      // récupérer l'utilisateur
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (!user) {
+        console.log("!user");
+        console.log("user not found");
+        return res
+          .status(401)
+          .json({ message: "Utilisateur introuvable", error: "unknow user" });
+      }
+
+      console.log({
+        id: user.id,
+        user: user.email,
+        username: user.username,
+      });
+
+      // vérifier que le mot de passe entré correspond à celui de la BDD
+      const passwordChecked = bcrypt.compareSync(password, user.password);
+      console.log(passwordChecked);
+      // si mot de passe différent de celui de la bdd
+      if (!passwordChecked) {
+        return res
+          .status(500)
+          .json({ message: `Login process failed`, error: err });
+      }
+      if (user && passwordChecked) {
+        // generation du token jwt
+        // jwt.sign({payload}, secret, durée);
+        const token = jwt.sign(
+          {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+          },
+
+          process.env.JWT_SECRET,
+          {
+            expiresIn: 3600,
+          }
+        );
+        console.log(token);
+        return res.json({
+          userId: user.id,
+          email: user.email,
+          username: user.username,
+          access_token: token,
+        });
+      }
+    } catch (err) {
+      console.trace(err);
+      res.status(500).json({
+        message: "Database error",
+        error: err,
+      });
+    }
+  },
+
+  /* login: async (req, res) => {
     const { email, password } = req.body;
     try {
       if (!emailValidator.validate(email)) {
@@ -126,12 +197,12 @@ const userController = {
       }
 
       res
-        .status(200)
+        .status(201)
         .json({ user, sucess: "Utilisateur connecté avec succès" });
     } catch (err) {
       console.log(err);
     }
-  },
+  }, */
   deleteAccount: async (req, res) => {
     const { userId } = req.params;
     const userIdToInt = parseInt(userId);

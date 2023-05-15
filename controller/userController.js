@@ -8,6 +8,20 @@ const passwordValidator = require("password-validator");
 require("dotenv").config();
 
 const userController = {
+  getAllUsers: async (req, res) => {
+    try {
+      const users = await prisma.user.findMany({
+        select: {
+          id: true,
+          username: true,
+          email: true,
+        },
+      });
+      res.status(200).json({ users });
+    } catch (e) {
+      console.log(e);
+    }
+  },
   createUser: async (req, res) => {
     console.log("ici");
     try {
@@ -118,7 +132,6 @@ const userController = {
       });
 
       if (!user) {
-        console.log("!user");
         console.log("user not found");
         return res
           .status(401)
@@ -149,13 +162,11 @@ const userController = {
             username: user.username,
             email: user.email,
           },
-
           process.env.JWT_SECRET,
           {
-            expiresIn: 3600,
+            expiresIn: 60 * 60 * 24 * 30,
           }
         );
-        console.log(token);
         return res.json({
           userId: user.id,
           email: user.email,
@@ -172,37 +183,6 @@ const userController = {
     }
   },
 
-  /* login: async (req, res) => {
-    const { email, password } = req.body;
-    try {
-      if (!emailValidator.validate(email)) {
-        return res.status(401).json({ message: "L'email n'est pas un email" });
-      }
-      const user = await prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
-      if (!user) {
-        res
-          .status(404)
-          .json({ error: "Utilisateur introuvable, avez-vous un compte ?" });
-        console.log("user not found");
-        return;
-      }
-      const passwordChecked = bcrypt.compareSync(password, user.password);
-      if (!passwordChecked) {
-        res.status(401).json({ error: `Mauvais mot de passe` });
-        return;
-      }
-
-      res
-        .status(201)
-        .json({ user, sucess: "Utilisateur connecté avec succès" });
-    } catch (err) {
-      console.log(err);
-    }
-  }, */
   deleteAccount: async (req, res) => {
     const { userId } = req.params;
     const userIdToInt = parseInt(userId);

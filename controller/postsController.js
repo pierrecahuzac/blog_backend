@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const { IntFilter } = require("@prisma/client");
+const { post } = require("../router");
 const prisma = new PrismaClient();
 
 const postsController = {
@@ -26,7 +27,7 @@ const postsController = {
         res.status(400).json({ error: `pas d'articles tourvés` });
         return;
       }
-      /*   console.log(posts); */
+
       res.status(200).json({ posts });
     } catch (err) {
       console.log(err);
@@ -79,12 +80,11 @@ const postsController = {
           }, */
         },
       });
-      /* console.log(postsUser); */
+
       if (!postsUser) {
-        /*       console.log("Pas de posts trouvés pour cet user " + userId); */
         return;
       }
-      /*  console.log(postsUser); */
+
       res.status(201).json({ postsUser });
       return;
     } catch (err) {
@@ -92,27 +92,26 @@ const postsController = {
     }
   },
 
-  deleteOneUserPost: async (req, res) => {
+  deleteOnePost: async (req, res) => {
     const { articleId } = req.params;
-    console.log(typeof articleId);
-    const id = parseInt(articleId);
 
+    const id = parseInt(articleId);
+    console.log(typeof id);
     try {
-      const deletePostByID = prisma.post.delete({
+      await prisma.post.delete({
         where: {
           id: id,
         },
       });
-      console.log(deletePostByID);
+
       if (err) {
         console.log(err);
-        res.status(500).json({ error: err });
-        return;
+        return res.status(500).json({ error: err });
       }
-      res.status(201).json({
+      console.log("ici");
+      return res.status(201).json({
         success: "Le post a été supprimé",
       });
-      return;
     } catch (err) {
       return res.status(400).json({ error: err });
     }
@@ -146,7 +145,6 @@ const postsController = {
         res.status(404).json({ error: "Article non trouvé" });
         return;
       }
-      /*     console.log(post); */
       res.status(200).json({ post, success: "Article trouvé" });
       return;
     } catch (err) {

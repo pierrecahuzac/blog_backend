@@ -23,7 +23,6 @@ const userController = {
     }
   },
   createUser: async (req, res) => {
-    console.log("ici");
     try {
       const { email, username, password, password_validation } = req.body;
       var schema = new passwordValidator();
@@ -138,20 +137,18 @@ const userController = {
           .json({ message: "Utilisateur introuvable", error: "unknow user" });
       }
 
-      console.log({
+      /*   console.log({
         id: user.id,
         user: user.email,
         username: user.username,
-      });
+      }); */
 
       // vérifier que le mot de passe entré correspond à celui de la BDD
       const passwordChecked = bcrypt.compareSync(password, user.password);
-      console.log(passwordChecked);
+
       // si mot de passe différent de celui de la bdd
       if (!passwordChecked) {
-        return res
-          .status(500)
-          .json({ message: `Login process failed`, error: err });
+        return res.status(500).json({ message: `Login process failed` });
       }
       if (user && passwordChecked) {
         // generation du token jwt
@@ -172,13 +169,14 @@ const userController = {
           email: user.email,
           username: user.username,
           access_token: token,
+          message: `${user.username} est connecté`,
         });
       }
     } catch (err) {
       console.trace(err);
       res.status(500).json({
         message: "Database error",
-        error: err,
+        err,
       });
     }
   },
@@ -205,8 +203,7 @@ const userController = {
       await prisma.$transaction([deletePosts, deleteUser]);
 
       if (!res) {
-        res.status(400).json({ error: "Utilisateur introuvable" });
-        return;
+        return res.status(400).json({ error: "Utilisateur introuvable" });
       }
       res.status(202).json({ sucess: "Le compte utilisateur a été effacé" });
       return;

@@ -1,6 +1,6 @@
 const path = require("path");
 const router = require("express").Router();
-const auth_router = require("./authRouter");
+
 const checkTokenMiddleware = require("./jsonwebtoken/check");
 const userController = require("./controller/userController");
 const postsController = require("./controller/postsController");
@@ -18,10 +18,22 @@ router.post("/api/user/create_user", userController.createUser);
 router.post("/api/user/login", userController.login);
 /* router.post("/auth/login", auth_router); */
 router.get("/api/blog/user/:id", postsController.getAllPostsFromUser);
-router.post("/api/user/createNewPost", postsController.createNewPost);
-router.delete("/api/post/:articleId", postsController.deleteOneUserPost);
+router.post(
+  "/api/user/createNewPost",
+  /*  checkTokenMiddleware, */
+  postsController.createNewPost
+);
+router.delete(
+  "/api/post/:articleId",
+  /*  checkTokenMiddleware, */
+  postsController.deleteOnePost
+);
 router.get("/api/blog/:id", postsController.getOneArticle);
 
-router.delete("/api/user/:userId/deleteAccount", userController.deleteAccount);
+router.delete(
+  "/api/user/:userId/deleteAccount",
+  /*  checkTokenMiddleware, */
+  userController.deleteAccount
+);
 
 module.exports = router;

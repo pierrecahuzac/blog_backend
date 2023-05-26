@@ -129,19 +129,13 @@ const userController = {
           email,
         },
       });
-
+      console.log(user);
       if (!user) {
         console.log("user not found");
         return res
           .status(401)
           .json({ message: "Utilisateur introuvable", error: "unknow user" });
       }
-
-      /*   console.log({
-        id: user.id,
-        user: user.email,
-        username: user.username,
-      }); */
 
       // vérifier que le mot de passe entré correspond à celui de la BDD
       const passwordChecked = bcrypt.compareSync(password, user.password);

@@ -131,9 +131,7 @@ const userController = {
       });
 
       if (!user) {
-        return res
-          .status(404)
-          .json({ message: "Utilisateur introuvable avec email " + email });
+        return res.status(404);
       }
 
       // vérifier que le mot de passe entré correspond à celui de la BDD

@@ -129,12 +129,9 @@ const userController = {
           email,
         },
       });
-      console.log(user);
+
       if (!user) {
-        console.log("user not found");
-        return res
-          .status(401)
-          .json({ message: "Utilisateur introuvable", error: "unknow user" });
+        return res.status(404);
       }
 
       // vérifier que le mot de passe entré correspond à celui de la BDD
@@ -158,6 +155,7 @@ const userController = {
             expiresIn: 60 * 60 * 24 * 30,
           }
         );
+        console.log(user);
         return res.json({
           userId: user.id,
           email: user.email,

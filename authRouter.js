@@ -18,7 +18,7 @@ const login = router.post("/login", (req, res) => {
         email,
       },
     });
-    console.log("database");
+    /* console.log("database"); */
     if (!user) {
       console.log("!user");
       console.log("user not found");

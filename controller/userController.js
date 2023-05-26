@@ -103,6 +103,7 @@ const userController = {
 
   loginUser: async (req, res) => {
     const { email, password } = req.body;
+    console.log(email, password);
     try {
       if (!emailValidator.validate(email)) {
         return res.status(401).json({ message: "L'email n'est pas un email" });
@@ -112,6 +113,7 @@ const userController = {
           email,
         },
       });
+      console.log(user);
       if (!user) {
         res
           .status(404)
@@ -122,9 +124,9 @@ const userController = {
       const passwordChecked = bcrypt.compareSync(password, user.password);
       if (!passwordChecked) {
         res.status(401).json({ error: `Mauvais mot de passe` });
+        console.log("erreur de mdp");
         return;
       }
-
       res
         .status(200)
         .json({ user, sucess: "Utilisateur connecté avec succès" });

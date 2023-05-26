@@ -81,12 +81,11 @@ const postsController = {
           }, */
         },
       });
-      console.log(postsUser);
+
       if (!postsUser) {
         console.log("Pas de posts trouvés pour cet user " + userId);
         return;
       }
-      console.log(postsUser);
 
       res.status(201).json({ postsUser });
       return;
@@ -105,12 +104,7 @@ const postsController = {
           id: parseInt(articleId, 10),
         },
       });
-      console.log(response);
-      /* if (err) {
-        console.log(err);
-        res.status(500).json({ error: err });
-        return;
-      } */
+
       res.status(201).json({
         success: "Le post a été supprimé",
       });

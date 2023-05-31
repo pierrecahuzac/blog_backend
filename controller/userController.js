@@ -17,6 +17,7 @@ const userController = {
           email: true,
         },
       });
+      console.log("users", users);
       res.status(200).json({ users });
     } catch (e) {
       console.log(e);
@@ -131,6 +132,7 @@ const userController = {
       });
 
       if (!user) {
+        console.log("utilisateur introuvable");
         return res.status(404);
       }
 
@@ -165,7 +167,7 @@ const userController = {
         });
       }
     } catch (err) {
-      console.trace(err);
+      console.log(err);
       res.status(500).json({
         message: "Database error",
         err,

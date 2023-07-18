@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const emailValidator = require("email-validator");
 const passwordValidator = require("password-validator");
+const tokenManager = require("../jsonwebtoken/tokenManager");
+const nodemailer = require("nodemailer");
 
 require("dotenv").config();
 
@@ -24,6 +26,14 @@ const userController = {
     }
   },
   createUser: async (req, res) => {
+    const transporter = nodemailer.createTransport({
+      host: "smtp.forwardemail.net",
+      port: 465,
+      secure: true,
+      auth: {
+        // should be replaced with real sender's account
+      },
+    });
     console.log("ici");
     try {
       const { email, username, password, password_validation } = req.body;
@@ -91,15 +101,15 @@ const userController = {
         return;
       }
       if (!email) {
-        /*     arrayErrors.push("error"); */
+        arrayErrors.push("error");
         res.status(400).json({ erreur: "Pas d'email" });
         return;
       }
 
-      /*  if (arrayErrors.length) {
+      if (arrayErrors.length) {
         res.status(500).json({ arrayErrors: arrayErrors });
         return;
-      } */
+      }
       const saltRounds = 10;
       const salt = bcrypt.genSaltSync(saltRounds);
       const user = await prisma.user.create({
@@ -111,8 +121,9 @@ const userController = {
       });
       res.status(201).json({
         user,
-        logged: true,
-        sucess: "Le compte a été crée avec succès",
+        logged: false,
+        success: "Le compte a été crée avec succès",
+        verifiedAccount: false,
       });
       console.log(user);
     } catch (err) {
@@ -138,7 +149,7 @@ const userController = {
       console.log(user);
       if (!user) {
         console.log("utilisateur introuvable");
-        return res.status(404);
+        return res.status(404).json({ message: "User not found" });
       }
 
       // vérifier que le mot de passe entré correspond à celui de la BDD
@@ -171,17 +182,24 @@ const userController = {
 
         // generation du token jwt
         // jwt.sign({payload}, secret, durée);
+
         const token = jwt.sign(
           {
             id: user.id,
             username: user.username,
-            email: user.email,
+            email: user.username,
           },
           process.env.JWT_SECRET,
           {
-            expiresIn: 60 * 60 * 24 * 30,
+            expiresIn: 60 * 60 * 24 * 7,
           }
         );
+
+        /* tokenManager.createdToken(
+          user.id,
+          user.username,
+          user.email
+        ); */
 
         return res.status(201).json({
           userId: user.id,
@@ -190,7 +208,7 @@ const userController = {
           access_token: token,
           message: `${user.username} est connecté`,
           logged: true,
-          //sessionUser,
+          token,
         });
       }
     } catch (err) {
@@ -256,7 +274,7 @@ const userController = {
       if (!res) {
         return res.status(400).json({ error: "Utilisateur introuvable" });
       }
-      res.status(202).json({ sucess: "Le compte utilisateur a été effacé" });
+      res.status(202).json({ success: "Le compte utilisateur a été effacé" });
       return;
     } catch (err) {
       console.log(err);

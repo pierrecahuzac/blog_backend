@@ -14,6 +14,7 @@ const corsOptions = {
     "http://localhost:3000",
     "http://localhost",
     "http://app.localhost",
+    "https://leblogdudev.fr",
     "*",
   ],
   credentials: true,
@@ -35,7 +36,8 @@ const oneDay = 1000 * 60 * 60 * 24;
   })
 ) */
 
-app.set("trust proxy", 1); //delete on production
+//delete on production
+/* app.set("trust proxy", 1);  */
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

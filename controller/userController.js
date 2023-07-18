@@ -24,6 +24,7 @@ const userController = {
     }
   },
   createUser: async (req, res) => {
+    console.log("ici");
     try {
       const { email, username, password, password_validation } = req.body;
       var schema = new passwordValidator();
@@ -44,13 +45,17 @@ const userController = {
         .is()
         .not()
         .oneOf(["Passw0rd", "Password123"]);
-      /*    const arrayErrors = []; */
-      const userExist = await prisma.user.findUnique({
+      const arrayErrors = [];
+
+      const userEmailExist = await prisma.user.findUnique({
         where: { email },
       });
+      const userUsernameExist = await prisma.user.findUnique({
+        where: { username },
+      });
 
-      if (userExist) {
-        /*  arrayErrors.push("error"); */
+      if (userEmailExist || userUsernameExist) {
+        console.log("user existant");
         res.status(502).json({
           error:
             "Utilisateur existant, merci de vous connecter avec votre email / mot de passe",
@@ -59,15 +64,15 @@ const userController = {
       }
 
       if (!schema.validate(password)) {
-        /* arrayErrors.push("error"); */
+        arrayErrors.push("error");
         res.status(400).json({
-          erreur:
-            "Le mot de passes ne correspont pas aux standards de sécurité, merci de le modifier",
+          error:
+            "Le mot de passe ne correspond pas aux standards de sécurité, merci de le modifier",
         });
         return;
       }
       if (!emailValidator.validate(email)) {
-        /*  arrayErrors.push("error"); */
+        arrayErrors.push("error");
         res.status(500).json({
           erreur: "Entrez une adresse email valide",
         });
@@ -78,7 +83,7 @@ const userController = {
         !password_validation ||
         password !== password_validation
       ) {
-        /* arrayErrors.push("error"); */
+        arrayErrors.push("error");
         res.status(500).json({
           erreur:
             "Pas de mots de passe ou le mots de passe et la validation sont différents",

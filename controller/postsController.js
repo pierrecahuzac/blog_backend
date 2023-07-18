@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const { IntFilter } = require("@prisma/client");
+const { post } = require("../router");
 const prisma = new PrismaClient();
 
 const postsController = {
@@ -26,7 +27,7 @@ const postsController = {
         res.status(400).json({ error: `pas d'articles tourvés` });
         return;
       }
-      console.log(posts);
+
       res.status(200).json({ posts });
     } catch (err) {
       console.log(err);
@@ -65,14 +66,12 @@ const postsController = {
   },
 
   getAllPostsFromUser: async (req, res) => {
-    const { username } = req.params;
-    console.log(username);
-    /*    const userIdToInt = parseInt(id);
-    console.log(userIdToInt); */
+    const { id } = req.params;
+    const userId = parseInt(id);
     try {
       const postsUser = await prisma.post.findMany({
         where: {
-          authorId: 8,
+          authorId: userId,
           /*   author: {
             select: {
               username: true,
@@ -83,7 +82,6 @@ const postsController = {
       });
 
       if (!postsUser) {
-        console.log("Pas de posts trouvés pour cet user " + userId);
         return;
       }
 
@@ -94,21 +92,26 @@ const postsController = {
     }
   },
 
-  deleteOneUserPost: async (req, res) => {
-    console.log("ici dans le abck");
+  deleteOnePost: async (req, res) => {
     const { articleId } = req.params;
-    console.log("articelId", articleId);
+
+    const id = parseInt(articleId);
+    console.log(typeof id);
     try {
-      const response = await prisma.post.delete({
+      await prisma.post.delete({
         where: {
-          id: parseInt(articleId, 10),
+          id: id,
         },
       });
 
-      res.status(201).json({
+      if (err) {
+        console.log(err);
+        return res.status(500).json({ error: err });
+      }
+      console.log("ici");
+      return res.status(201).json({
         success: "Le post a été supprimé",
       });
-      return;
     } catch (err) {
       return res.status(400).json({ error: err });
     }
@@ -142,7 +145,6 @@ const postsController = {
         res.status(404).json({ error: "Article non trouvé" });
         return;
       }
-      console.log(post);
       res.status(200).json({ post, success: "Article trouvé" });
       return;
     } catch (err) {

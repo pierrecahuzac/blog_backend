@@ -29,17 +29,16 @@ model User {
   password String @db.VarChar(255)
   posts   Post[]  
   
-}
-model SessionToken {
-  id      Int      @id @default(autoincrement())
-  token   String   @unique 
-  userId  Int
-  user    User     @relation(fields: [userId],references: [id])
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt
+  Token Token[]
 }
 
-model TokenBlackList{
-  
+model Token {
+  id          String   @id @unique @default(uuid())
+  token String @unique
+  hashedToken String
+  userId      Int
+  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

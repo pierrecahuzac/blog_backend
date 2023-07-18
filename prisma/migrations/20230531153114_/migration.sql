@@ -6,8 +6,8 @@ CREATE TABLE "Post" (
     "title" VARCHAR(255) NOT NULL,
     "content" TEXT,
     "published" BOOLEAN DEFAULT false,
-    "authorId" INTEGER NOT NULL,
     "picture" TEXT,
+    "authorId" INTEGER NOT NULL,
 
     CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
 );

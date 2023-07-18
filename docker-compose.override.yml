@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  db:
+    ports:
+      - "15432:5432"
+  # swagger:
+  # image: swaggerapi/swagger-ui:latest
+  # volumes:
+  #   - ./api/src/swagger:/usr/share/nginx/html/doc
+  # environment:
+  #   API_URL: doc/description.json
+  # ports:
+  #    - "8081:8080"
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "8080:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+volumes:
+  pgadmin-data:

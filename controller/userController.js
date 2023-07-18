@@ -44,13 +44,13 @@ const userController = {
         .is()
         .not()
         .oneOf(["Passw0rd", "Password123"]);
-      const arrayErrors = [];
+      /*    const arrayErrors = []; */
       const userExist = await prisma.user.findUnique({
         where: { email },
       });
 
       if (userExist) {
-        arrayErrors.push("error");
+        /*  arrayErrors.push("error"); */
         res.status(502).json({
           error:
             "Utilisateur existant, merci de vous connecter avec votre email / mot de passe",
@@ -59,7 +59,7 @@ const userController = {
       }
 
       if (!schema.validate(password)) {
-        arrayErrors.push("error");
+        /* arrayErrors.push("error"); */
         res.status(400).json({
           erreur:
             "Le mot de passes ne correspont pas aux standards de sécurité, merci de le modifier",
@@ -67,7 +67,7 @@ const userController = {
         return;
       }
       if (!emailValidator.validate(email)) {
-        arrayErrors.push("error");
+        /*  arrayErrors.push("error"); */
         res.status(500).json({
           erreur: "Entrez une adresse email valide",
         });
@@ -78,7 +78,7 @@ const userController = {
         !password_validation ||
         password !== password_validation
       ) {
-        arrayErrors.push("error");
+        /* arrayErrors.push("error"); */
         res.status(500).json({
           erreur:
             "Pas de mots de passe ou le mots de passe et la validation sont différents",
@@ -86,15 +86,15 @@ const userController = {
         return;
       }
       if (!email) {
-        arrayErrors.push("error");
+        /*     arrayErrors.push("error"); */
         res.status(400).json({ erreur: "Pas d'email" });
         return;
       }
 
-      if (arrayErrors.length) {
-        res.status(500).json({ arrayErrors });
+      /*  if (arrayErrors.length) {
+        res.status(500).json({ arrayErrors: arrayErrors });
         return;
-      }
+      } */
       const saltRounds = 10;
       const salt = bcrypt.genSaltSync(saltRounds);
       const user = await prisma.user.create({
@@ -118,7 +118,7 @@ const userController = {
   login: async (req, res) => {
     try {
       const { email, password } = req.body;
-
+      console.log(req.body);
       // Validation des données reçues
       if (!email || !password) {
         return res.status(401).json({ message: "Bad email or password" });
@@ -130,7 +130,7 @@ const userController = {
           email,
         },
       });
-
+      console.log(user);
       if (!user) {
         console.log("utilisateur introuvable");
         return res.status(404);
@@ -141,9 +141,29 @@ const userController = {
 
       // si mot de passe différent de celui de la bdd
       if (!passwordChecked) {
-        return res.status(500).json({ message: `Login process failed` });
+        return res.status(500).json({ message: `Bad password` });
       }
       if (user && passwordChecked) {
+        //  generation de la session
+
+        /*   const sessionUser = (req.session.user = {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+         session: req.sessionID,
+          cookies: { name: "test" }, 
+        });
+*/
+        /*   delete req.session.user.password; */
+        //console.log("req.session.user", req.session.user);
+        /* .json({
+          logged: true,
+          info: req.session.user,
+        }); */
+        /* 
+
+        */
+
         // generation du token jwt
         // jwt.sign({payload}, secret, durée);
         const token = jwt.sign(
@@ -157,13 +177,15 @@ const userController = {
             expiresIn: 60 * 60 * 24 * 30,
           }
         );
-        console.log(user);
-        return res.json({
+
+        return res.status(201).json({
           userId: user.id,
           email: user.email,
           username: user.username,
           access_token: token,
           message: `${user.username} est connecté`,
+          logged: true,
+          //sessionUser,
         });
       }
     } catch (err) {
@@ -175,6 +197,36 @@ const userController = {
     }
   },
 
+  isLogged: async (req, res) => {
+    try {
+      console.log(req.headers.authorization);
+      if (req.headers.authorization) {
+        res.status(201).json({
+          logged: true,
+        });
+      } else {
+        res.status(401).json({
+          logged: false,
+        });
+      }
+    } catch (error) {
+      console.trace(error);
+      res.status(500).json(error);
+    }
+  },
+  logout: async (req, res) => {
+    try {
+      req.session.destroy(() => {
+        res.redirect("/");
+      });
+      res.status(200).json({ message: "Vous êtes déconnecté" });
+    } catch (err) {
+      res.status(401).json({
+        message: "Une erreur s'est produite lors de la déconnexion",
+        err,
+      });
+    }
+  },
   deleteAccount: async (req, res) => {
     const { userId } = req.params;
     const userIdToInt = parseInt(userId);
